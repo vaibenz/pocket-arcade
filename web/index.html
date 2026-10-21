@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover lets the page draw under notches; safe area insets keep controls clear of them -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>Pocket Arcade</title>
+  </head>
+  <body>
+    <main id="app">
+      <section id="home" class="screen" aria-labelledby="title">
+        <header class="home-head">
+          <h1 id="title">Pocket Arcade</h1>
+          <p class="sub">Two quick games. Every score is checked by the server.</p>
+        </header>
+        <label class="name">
+          <span>Playing as</span>
+          <input id="name" maxlength="20" autocomplete="nickname" enterkeyhint="done" />
+        </label>
+        <div class="cards">
+          <button class="card" data-game="stack">
+            <span class="card-title">Stack</span>
+            <span class="card-desc">Tap to drop. Overhang gets cut off.</span>
+            <span class="card-best" data-best="stack"></span>
+          </button>
+          <button class="card" data-game="dotrush">
+            <span class="card-title">Dot Rush</span>
+            <span class="card-desc">Tap every dot in 30 seconds.</span>
+            <span class="card-best" data-best="dotrush"></span>
+          </button>
+        </div>
+        <p id="status" class="status" role="status"></p>
+      </section>
+
+      <section id="play" class="screen" hidden>
+        <div class="hud">
+          <button id="pause" class="icon" aria-label="Pause">II</button>
+          <div class="hud-score" aria-live="off"><span id="score">0</span></div>
+          <div id="timer" class="hud-side"></div>
+        </div>
+        <div id="note" class="note"></div>
+        <div id="stage"></div>
+        <div id="overlay" class="overlay" hidden>
+          <div id="overlay-text" class="overlay-text"></div>
+          <div id="overlay-actions" class="overlay-actions"></div>
+        </div>
+      </section>
+
+      <section id="result" class="screen" hidden aria-labelledby="result-title">
+        <h2 id="result-title">Score</h2>
+        <div id="result-score" class="big"></div>
+        <p id="result-detail" class="detail" role="status"></p>
+        <ol id="board" class="board"></ol>
+        <div class="actions">
+          <button id="again" class="primary">Play again</button>
+          <button id="home-btn">Games</button>
+          <button id="share" hidden>Share</button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
