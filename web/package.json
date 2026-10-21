@@ -1,0 +1,22 @@
+{
+  "name": "pocket-arcade-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.4.5",
+    "vitest": "^3.2.7"
+  }
+}
