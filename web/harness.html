@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pocket Arcade WebView harness</title>
+    <style>
+      body {
+        margin: 0;
+        font: 14px/1.4 system-ui, sans-serif;
+        background: #0b0f17;
+        color: #e5e7eb;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        flex-wrap: wrap;
+      }
+      .phone {
+        position: relative;
+        border: 12px solid #000;
+        border-radius: 44px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        flex: none;
+      }
+      .phone iframe {
+        border: 0;
+        display: block;
+      }
+      /* drawn hardware: the notch and gesture bar the safe area must avoid */
+      .cutout {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #000;
+        pointer-events: none;
+      }
+      .panel {
+        flex: 1;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button,
+      select {
+        font: inherit;
+        background: #1f2937;
+        color: inherit;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      pre {
+        background: #111827;
+        border-radius: 8px;
+        padding: 12px;
+        height: 360px;
+        overflow: auto;
+        margin: 0;
+        font-size: 12px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      p {
+        color: #9ca3af;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="phone" class="phone">
+      <iframe id="frame" src="./index.html" title="Pocket Arcade in a simulated WebView"></iframe>
+      <div id="notch" class="cutout"></div>
+      <div id="bar" class="cutout"></div>
+    </div>
+    <div class="panel">
+      <h1>WebView harness</h1>
+      <p>Plays the role of the native app: sends bridge events into the page and logs what the page sends back.</p>
+      <div class="row">
+        <select id="device" aria-label="Device">
+          <option value="iphone">iPhone 15 (393 x 852, notch)</option>
+          <option value="pixel">Pixel 7 (412 x 915, gesture bar)</option>
+          <option value="small">Small Android (360 x 640)</option>
+          <option value="tablet">Tablet (768 x 1024)</option>
+        </select>
+      </div>
+      <div class="row">
+        <button data-send='{"type":"pause"}'>Pause (app backgrounded)</button>
+        <button data-send='{"type":"back"}'>Back button</button>
+        <button id="player">Send player</button>
+        <button data-send='{"type":"explode"}'>Send invalid event</button>
+      </div>
+      <pre id="log" aria-live="polite"></pre>
+    </div>
+    <script type="module" src="./src/harness.ts"></script>
+  </body>
+</html>
