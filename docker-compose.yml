@@ -1,0 +1,35 @@
+# docker compose up --build, then open http://localhost:8080
+# (or http://localhost:8080/harness.html for the simulated WebView)
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: arcade
+      POSTGRES_PASSWORD: arcade
+      POSTGRES_DB: arcade
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arcade"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
+  app:
+    build: .
+    ports: ["8080:8080"]
+    environment:
+      DATABASE_URL: postgres://arcade:arcade@postgres:5432/arcade?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      SESSION_KEY: change-me-to-a-long-random-string
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+volumes:
+  pgdata:
