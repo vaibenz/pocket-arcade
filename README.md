@@ -2,8 +2,10 @@
 
 Two HTML5 mini games built to run inside a mobile app's WebView, with a Go backend that replays every run before a score reaches the leaderboard.
 
-* **Stack**: a block slides back and forth; tap to drop it. Whatever overhangs the tower is cut off, so it narrows until you miss.
-* **Dot Rush**: tap each dot before it fades. Dots live a little less long each time, and a round lasts 30 seconds.
+Mini games inside an app are a fun problem because you can't trust the client. So the games are small on purpose; the interesting part is the Go server that replays each run before a score counts.
+
+* Stack: a block slides back and forth; tap to drop it. Whatever overhangs the tower is cut off, so it narrows until you miss.
+* Dot Rush: tap each dot before it fades. Dots live a little less long each time, and a round lasts 30 seconds.
 
 The games are TypeScript and Phaser. The backend is Go, with PostgreSQL as the record of every run and a Redis sorted set per game for the leaderboard.
 
@@ -32,9 +34,9 @@ flowchart LR
 
 A score sent by a browser can be anything. Pocket Arcade never trusts it:
 
-1. Before play, the client asks for a **session**. The server signs the game, player, a random seed and the start time into an HMAC token.
-2. During play, the client records only the player's **inputs**: for Stack, how many ms after each block appeared the player tapped; for Dot Rush, the time and position of every tap.
-3. At the end, the client sends the token, the inputs and the score it computed. The server **replays the inputs** with its own copy of the rules. The run is rejected if:
+1. Before play, the client asks for a session. The server signs the game, player, a random seed and the start time into an HMAC token.
+2. During play, the client records only the player's inputs: for Stack, how many ms after each block appeared the player tapped; for Dot Rush, the time and position of every tap.
+3. At the end, the client sends the token, the inputs and the score it computed. The server replays the inputs with its own copy of the rules. The run is rejected if:
 
 | Check | Response |
 |---|---|
@@ -49,7 +51,7 @@ Dot Rush positions come from the session seed, so the server knows where every d
 
 ### One set of rules in two languages
 
-The game draws from `web/src/sim` and the server replays with `server/internal/sim`. All arithmetic is integer (including a `mulberry32` RNG using `Math.imul` on one side and `uint32` on the other), so the two produce identical results. `server/cmd/genvectors` writes seeded runs to [`testdata/vectors.json`](testdata/vectors.json) and **both** test suites replay them, so client and server cannot drift apart without a test failing. CI also checks the committed vectors are current.
+The game draws from `web/src/sim` and the server replays with `server/internal/sim`. All arithmetic is integer (including a `mulberry32` RNG using `Math.imul` on one side and `uint32` on the other), so the two produce identical results. `server/cmd/genvectors` writes seeded runs to [`testdata/vectors.json`](testdata/vectors.json) and both test suites replay them, so client and server cannot drift apart without a test failing. CI also checks the committed vectors are current.
 
 ## The WebView bridge
 
@@ -67,12 +69,12 @@ Messages carry a protocol version. Events from the host (`pause`, `resume`, `bac
 
 Things that make it behave like part of the app rather than a web page:
 
-* **Safe areas**: layout uses `--safe-*` CSS variables that default to `env(safe-area-inset-*)`. Some Android WebViews report 0 there even under a notch or gesture bar, so the host can send real insets and they override the CSS.
-* **Lifecycle**: a `pause` from the host (call, app switch) or `visibilitychange` pauses the run. Frame deltas are capped at 100 ms so a stalled frame cannot skip game time.
-* **Touch**: the stage is `touch-action: none` (no scroll or pinch while playing), buttons use `touch-action: manipulation` (no 300 ms delay), no tap highlight, no long press menu, no rubber band scroll, 48 px targets, `16px` inputs so iOS does not zoom.
-* **Sizing**: `100dvh` tracks browser bars, the canvas follows its container through a `ResizeObserver`, Stack fits the board to the width, and Dot Rush letterboxes a fixed 360 x 640 arena so positions mean the same thing on every screen.
-* **Load time**: the home screen ships without Phaser. The engine is fetched while the player chooses a game, so the first screen needs about 6 KB of gzipped JavaScript instead of about 345 KB. The game loop sleeps between runs, which also stops Phaser from shrinking a hidden canvas to 0 x 0 and losing its WebGL framebuffer.
-* **Offline**: if the session request fails, the game still plays locally and says the run will not be saved.
+* Safe areas: layout uses `--safe-*` CSS variables that default to `env(safe-area-inset-*)`. Some Android WebViews report 0 there even under a notch or gesture bar, so the host can send real insets and they override the CSS.
+* Lifecycle: a `pause` from the host (call, app switch) or `visibilitychange` pauses the run. Frame deltas are capped at 100 ms so a stalled frame cannot skip game time.
+* Touch: the stage is `touch-action: none` (no scroll or pinch while playing), buttons use `touch-action: manipulation` (no 300 ms delay), no tap highlight, no long press menu, no rubber band scroll, 48 px targets, `16px` inputs so iOS does not zoom.
+* Sizing: `100dvh` tracks browser bars, the canvas follows its container through a `ResizeObserver`, Stack fits the board to the width, and Dot Rush letterboxes a fixed 360 x 640 arena so positions mean the same thing on every screen.
+* Load time: the home screen ships without Phaser. The engine is fetched while the player chooses a game, so the first screen needs about 6 KB of gzipped JavaScript instead of about 345 KB. The game loop sleeps between runs, which also stops Phaser from shrinking a hidden canvas to 0 x 0 and losing its WebGL framebuffer.
+* Offline: if the session request fails, the game still plays locally and says the run will not be saved.
 
 ### Harness
 
@@ -115,12 +117,12 @@ make dev-web      # Vite on :5173, reachable from a phone on the same Wi-Fi
 make test
 ```
 
-* **Go (24 tests)**: simulation rules and the shared vectors, token signing, tampering and expiry, and end to end HTTP tests of the submission flow: a full run reaching the leaderboard, replayed sessions, mismatched scores, too fast runs, forged and expired tokens, bests that only go up, ranking across players, rebuilding Redis from PostgreSQL, and serving from PostgreSQL when Redis fails. The end to end tests run against the in memory store and, when `TEST_DATABASE_URL` and `TEST_REDIS_URL` are set (as in CI), against real PostgreSQL and Redis as well.
-* **Web (36 tests)**: the TypeScript simulation against the same vectors, bridge transport detection, message validation, iframe origin checks, lifecycle pausing, safe area variables, and the API client's retry rules (it retries a submission through a brief outage, which is safe because each session is accepted once, but never retries a rejection).
+* Go (24 tests): simulation rules and the shared vectors, token signing, tampering and expiry, and end to end HTTP tests of the submission flow: a full run reaching the leaderboard, replayed sessions, mismatched scores, too fast runs, forged and expired tokens, bests that only go up, ranking across players, rebuilding Redis from PostgreSQL, and serving from PostgreSQL when Redis fails. The end to end tests run against the in memory store and, when `TEST_DATABASE_URL` and `TEST_REDIS_URL` are set (as in CI), against real PostgreSQL and Redis as well.
+* Web (36 tests): the TypeScript simulation against the same vectors, bridge transport detection, message validation, iframe origin checks, lifecycle pausing, safe area variables, and the API client's retry rules (it retries a submission through a brief outage, which is safe because each session is accepted once, but never retries a rejection).
 
 Benchmarks on a 2 vCPU VM: replaying a 60 block Stack run takes about 0.24 µs and a full Dot Rush round about 0.55 µs; a whole submission over HTTP against PostgreSQL and Redis takes about 2 ms.
 
-## Layout
+## Where things live
 
 ```
 server/
@@ -139,6 +141,10 @@ web/
 testdata/vectors.json
 ```
 
-## Limits
+## What it doesn't do (yet)
 
 Replay proves a run follows the rules, not that a person played it: a bot that taps perfectly will post a perfect score. The minimum gaps between taps raise the bar, and the next step would be per player rate limits and flagging statistically unlikely runs for review.
+
+---
+
+If something here is unclear, broken, or just wrong, feel free to open an issue. I'm always happy to chat about it.
